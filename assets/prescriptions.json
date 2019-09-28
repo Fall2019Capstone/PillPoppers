@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Test Pill 1",
+    "taken": true,
+    "time": "10:30" 
+  },
+  {
+      "id": 2,
+      "name": "Test Pill 2",
+      "taken": false,
+      "time": "16:00" 
+  }
+]
