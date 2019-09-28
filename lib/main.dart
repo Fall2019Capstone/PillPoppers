@@ -60,7 +60,7 @@ class BodyLayoutState extends State<BodyLayout> {
             _addPrescription();
           },
           icon: Icon(Icons.add),
-          label: Text("New Presciption"))
+          label: Text("New Prescription"))
           );
     //return _myListView();
   }
