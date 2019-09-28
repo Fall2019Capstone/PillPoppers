@@ -1,14 +1,15 @@
 class Prescription{
-  String name;
-  bool taken;
-  int numberToTake;
-  int numberTaken;
+  String name = "New prescription";
+  bool taken = false;
+  int numberToTake = 10;
+  int numberTaken = 0; 
 
 
-  static List<Prescription> prescriptions;
+  static List<Prescription> prescriptions = [new Prescription("TestMade1"), new Prescription("TestMade2")];
 
   Prescription(String name){
     this.name = name;
+    //prescriptions.add(this);
   }
 
   static instantiate(){
@@ -18,5 +19,9 @@ class Prescription{
     Prescription scrip2 = new Prescription("TestMade2");
     prescriptions.add(scrip1);
     prescriptions.add(scrip2);
+  }
+
+  static newPrescription(String name){
+    prescriptions.add(new Prescription(name));
   }
 }
