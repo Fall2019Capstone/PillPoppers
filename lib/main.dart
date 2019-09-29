@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:pill_poppers/NotificationHandler.dart';
 
 import 'Prescription.dart';
 
@@ -14,10 +16,9 @@ void main() => runApp(MyApp());
 // List<bool> hasTaken = [true, false, false];
 
 class MyApp extends StatelessWidget {
-  BodyLayout body = BodyLayout();
-
   @override
   Widget build(BuildContext context) {
+    NotificationHandler.setupNotifications(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Pill Poppers',
@@ -25,24 +26,23 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: Scaffold(
-        appBar: AppBar(title: Text('Pill Poppers'), centerTitle: true,),
-        body: BodyLayout()
-      ),
+          appBar: AppBar(
+            title: Text('Pill Poppers'),
+            centerTitle: true,
+          ),
+          body: BodyLayout()),
     );
   }
 }
 
 class BodyLayout extends StatefulWidget {
-final BodyLayoutState bodyLayoutState = new BodyLayoutState();
-
   @override
   BodyLayoutState createState() {
-    return bodyLayoutState;
+    return new BodyLayoutState();
   }
 }
 
 class BodyLayoutState extends State<BodyLayout> {
-
   // Called when outside of any card is touched, adds new blank prescription for now.
   void _addPrescription() {
     setState(() {
@@ -52,16 +52,16 @@ class BodyLayoutState extends State<BodyLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _myListView(),
-            floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            // TODO: Add new list item when FAB pressed
-            print("FAB Pressed");
-            _addPrescription();
-          },
-          icon: Icon(Icons.add),
-          label: Text("New Presciption"))
-          );
+    return Scaffold(
+        body: _myListView(),
+        floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              // TODO: Add new list item when FAB pressed
+              print("FAB Pressed");
+              _addPrescription();
+            },
+            icon: Icon(Icons.add),
+            label: Text("New Presciption")));
     //return _myListView();
   }
 
@@ -81,16 +81,49 @@ class BodyLayoutState extends State<BodyLayout> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: <Widget>[
-                  Text(item.name, style: TextStyle(fontSize: 16),),
-                  Checkbox(
-                    value: item.taken,
-                    onChanged: (bool newValue) {
-                      setState(() {
-                        // Change the hasTaken bool to true or false
-                        item.taken = newValue;
-                      });
-                    },
-                  )
+                  Text(
+                    item.name,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        "Taken",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      Checkbox(
+                        value: item.taken,
+                        onChanged: (bool newValue) {
+                          setState(() {
+                            item.taken = newValue;
+                          });
+                        },
+                      ),
+                      Spacer(),
+                      Text("Enable Alarm?", style: TextStyle(fontSize: 16)),
+                      Checkbox(
+                        value: item.alarmEnabled,
+                        onChanged: (bool newValue) {
+                          setState(() {
+                            item.setAlarm(newValue);
+                            
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                  FlatButton(
+                      onPressed: () {
+                        DatePicker.showTimePicker(context,
+                            showTitleActions: true,
+                            currentTime: item.alarmTime, onConfirm: (dateTime) {
+                          item.updateTime(dateTime);
+                        }, locale: LocaleType.en);
+                      },
+                      child: Text(
+                        'Show time picker',
+                        style: TextStyle(color: Colors.blue),
+                      ))
                 ],
               ),
             ),
