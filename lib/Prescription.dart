@@ -1,17 +1,21 @@
 import 'package:pill_poppers/NotificationHandler.dart';
 
+import 'Alarm.dart';
+
 class Prescription {
-  // I just don't have a better way to curerntly keep track of the highest used ID
-  // Second thought, just add it to the list and take the length, but still, I'm too lazy right now
   static int maxUsedID = 0;
 
   String name = "New prescription";
   bool taken = false;
-  bool alarmEnabled = false;
+  bool alarmEnabled = true;
   int numberToTake = 10;
   int numberTaken = 0;
-  DateTime alarmTime;
+  DateTime alarmTime = DateTime.now();
   int alarmID;
+  bool daily = true;
+  Alarm alarm;
+  // Sunday - Saturday of alarm being set
+  List<bool> daysSelected = [false, false, false, false, false, false, false];
 
   static List<Prescription> prescriptions = [
     new Prescription("TestMade1"),
@@ -22,7 +26,15 @@ class Prescription {
     this.name = name;
     alarmID = maxUsedID;
     maxUsedID++;
-    //prescriptions.add(this);
+  }
+
+  void confirmNewPrescription() {
+    if (!prescriptions.contains(this)) {
+      prescriptions.add(this);
+    }
+    if (daysSelected.contains(true)) {
+      NotificationHandler.schedulePrescriptionNotifications(this);
+    }
   }
 
   void setAlarm(bool value) {
@@ -57,5 +69,12 @@ class Prescription {
 
   static newPrescription(String name) {
     prescriptions.add(new Prescription(name));
+  }
+
+  @override
+  String toString() {
+    String desc = '''$name
+    $daysSelected''';
+    return desc;
   }
 }

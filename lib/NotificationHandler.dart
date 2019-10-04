@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'Alarm.dart';
 import 'Prescription.dart';
 import 'main.dart';
 
@@ -13,6 +14,49 @@ class NotificationHandler {
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   static BuildContext context;
 
+  static Future<Alarm> schedulePrescriptionNotifications(
+      Prescription prescription) async {
+    Alarm alarm;
+    List<int> alarmIDs = new List<int>();
+
+    if (prescription.alarm != null) {
+      for (int i = 0; i < prescription.alarm.alarmIDs.length; i++) {
+        flutterLocalNotificationsPlugin.cancel(prescription.alarm.alarmIDs[i]);
+      }
+    }
+
+    if (prescription.daily) {
+      alarmIDs = await getNextIDs(1);
+
+      alarm = new Alarm(alarmIDs, prescription.alarmTime, prescription.name,
+          "Time to take your " + prescription.name + ".", AlarmType.Daily);
+      scheduleDailyNotificationAlarm(alarm);
+    } else {
+      int alarmsNeeded = 0;
+      for (int i = 0; i < 7; i++) {
+        if (prescription.daysSelected[i]) {
+          alarmsNeeded++;
+        }
+      }
+      alarmIDs = await getNextIDs(alarmsNeeded);
+      alarm = new Alarm(
+          alarmIDs,
+          prescription.alarmTime,
+          prescription.name,
+          "It is time to take " + prescription.name + ".",
+          AlarmType.SpecificDays);
+      int alarmID = 0;
+      for (int i = 0; i < 7; i++) {
+        if (prescription.daysSelected[i]) {
+          scheduleWeeklyNotificationAlarm(alarm, alarmIDs[alarmID], days[i]);
+          alarmID++;
+        }
+      }
+    }
+
+    return alarm;
+  }
+
   static Future scheduleNotification(Prescription prescription) async {
     var scheduledNotificationDateTime =
         //new DateTime.now().add(new Duration(seconds: 5));
@@ -23,10 +67,20 @@ class NotificationHandler {
     await flutterLocalNotificationsPlugin.schedule(
         prescription.alarmID,
         'Prescription Time!',
-        'It is time to take "' + prescription.name + '"',
+        'It is time to take "' + prescription.name + '.',
         scheduledNotificationDateTime,
         platformChannelSpecifics);
   }
+
+  static List<Day> days = [
+    Day.Sunday,
+    Day.Monday,
+    Day.Tuesday,
+    Day.Wednesday,
+    Day.Thursday,
+    Day.Friday,
+    Day.Saturday
+  ];
 
   static Future scheduleDailyNotification(Prescription prescription) async {
     var timeOfDay = prescription.alarmTime;
@@ -41,6 +95,43 @@ class NotificationHandler {
         'Daily notification shown at approximately ${time.hour}:${time.minute}:${time.second}',
         time,
         platformChannelSpecifics);
+  }
+
+  static Future scheduleDailyNotificationAlarm(Alarm alarm) async {
+    var timeOfDay = alarm.timeOfDay;
+    Time time = new Time(timeOfDay.hour, timeOfDay.minute, 0);
+
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.showDailyAtTime(alarm.alarmIDs[0],
+        alarm.title, alarm.body, time, platformChannelSpecifics);
+  }
+
+  static Future scheduleWeeklyNotification(Prescription prescription) async {
+    var time = new Time(10, 0, 0);
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(
+        0,
+        'show weekly title',
+        'Weekly notification shown on Monday at approximately ',
+        Day.Monday,
+        time,
+        platformChannelSpecifics);
+    //flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(id, title, body, day, notificationTime, notificationDetails)
+  }
+
+  static Future scheduleWeeklyNotificationAlarm(
+      Alarm alarm, int id, Day day) async {
+    var time = new Time(alarm.timeOfDay.hour, alarm.timeOfDay.minute, 0);
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    print("Setting notification : " + alarm.title + ", id : " + id.toString());
+    await flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(
+        id, alarm.title, alarm.body, day, time, platformChannelSpecifics);
   }
 
   static void setupNotifications(BuildContext buildContext) {
@@ -76,6 +167,16 @@ class NotificationHandler {
           print("Disabling alarm...");
           flutterLocalNotificationsPlugin.cancel(prescription.alarmID);
         }
+      }
+    });
+  }
+
+  static Future disableAllAlarms() async {
+    var futurePendingAlarms = retrieveNotifications();
+    futurePendingAlarms.then((alarms) {
+      for (int i = 0; i < alarms.length; i++) {
+        print("Disabling alarm...");
+        flutterLocalNotificationsPlugin.cancel(alarms[i].id);
       }
     });
   }
@@ -121,5 +222,38 @@ class NotificationHandler {
         ],
       ),
     );
+  }
+
+  static Future<List<int>> getSetAlarmIDs() async {
+    List<int> ids = new List<int>();
+
+    var notifs = await retrieveNotifications();
+
+    for (int i = 0; i < notifs.length; i++) {
+      ids.add(notifs[i].id);
+    }
+
+    return ids;
+  }
+
+  static Future<List<int>> getNextIDs(int numberOfIDs) async {
+    if (numberOfIDs < 1) {
+      return null;
+    }
+
+    List<int> ids = new List<int>();
+    var setAlarmIDs = await getSetAlarmIDs();
+
+    for (int i = 0; i < 250; i++) {
+      if (!setAlarmIDs.contains(i)) {
+        print("Sending id: $i");
+        ids.add(i);
+      }
+      if (ids.length == numberOfIDs) {
+        break;
+      }
+    }
+
+    return ids;
   }
 }

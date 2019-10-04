@@ -56,13 +56,20 @@ class BodyLayoutState extends State<BodyLayout> {
         body: _myListView(),
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              // TODO: Add new list item when FAB pressed
-              print("FAB Pressed");
-              _addPrescription();
+              NotificationHandler.disableAllAlarms();
+              showDialog(
+                  context: context,
+                  builder: (_) {
+                    return NewPrescriptionDialog();
+                  }).then((value) {
+                if (value) {
+                  // Update the cards to show the new prescription
+                  setState(() {});
+                }
+              });
             },
             icon: Icon(Icons.add),
             label: Text("New Prescription")));
-    //return _myListView();
   }
 
   Widget _myListView() {
@@ -72,11 +79,7 @@ class BodyLayoutState extends State<BodyLayout> {
         final item = Prescription.prescriptions[index];
         return Card(
           child: InkWell(
-            onTap: () {
-              // When outside of card touched
-              // Moved to FAB
-              //_addPrescription();
-            },
+            onTap: () {},
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -106,7 +109,6 @@ class BodyLayoutState extends State<BodyLayout> {
                         onChanged: (bool newValue) {
                           setState(() {
                             item.setAlarm(newValue);
-                            
                           });
                         },
                       )
@@ -123,13 +125,155 @@ class BodyLayoutState extends State<BodyLayout> {
                       child: Text(
                         'Show time picker',
                         style: TextStyle(color: Colors.blue),
-                      ))
+                      )),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class NewPrescriptionDialog extends StatefulWidget {
+  @override
+  _NewPrescriptionDialogState createState() =>
+      new _NewPrescriptionDialogState();
+}
+
+class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
+  List<String> days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+  List<String> daysAbbrev = ["S", "M", "T", "W", "TH", "F", "S"];
+
+  Prescription newPrescription = new Prescription("New prescription");
+
+  List<bool> isSelected = [true, false];
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      title: Text("Create Prescription"),
+      contentPadding: const EdgeInsets.all(10.0),
+      children: <Widget>[
+        // Name
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Name: "),
+            new Flexible(
+                child: TextField(
+              expands: false,
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(), labelText: "Prescription name"),
+              onChanged: (name) {
+                newPrescription.name = name;
+              },
+              onSubmitted: (name) {
+                newPrescription.name = name;
+              },
+            ))
+          ],
+        ),
+        // Notification handler (Daily or on X,Y,Z days)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ToggleButtons(
+              children: <Widget>[Text("Daily"), Text("Certain Days")],
+              onPressed: (int index) {
+                setState(() {
+                  switch (index) {
+                    case 0:
+                      newPrescription.daily = true;
+                      isSelected[0] = true;
+                      isSelected[1] = false;
+                      break;
+                    case 1:
+                      newPrescription.daily = false;
+                      isSelected[0] = false;
+                      isSelected[1] = true;
+                      break;
+                    // Doesn't occur
+                    default:
+                      break;
+                  }
+                });
+              },
+              isSelected: isSelected,
+            )
+          ],
+        ),
+        // Day pickerr if not set to Daily
+        Row(
+          children: <Widget>[
+            Visibility(
+              visible: newPrescription.daily,
+              child: new Text(""),
+              replacement: new Container(
+                  width: MediaQuery.of(context).size.width * .7,
+                  height: MediaQuery.of(context).size.height * .05,
+                  child: new GridView.builder(
+                      gridDelegate:
+                          new SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 7),
+                      itemCount: days.length,
+                      itemBuilder: (context, index) {
+                        return new RaisedButton(
+                          child: Text(daysAbbrev[index]),
+                          color: newPrescription.daysSelected[index]
+                              ? Colors.blue
+                              : Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              newPrescription.daysSelected[index] =
+                                  !newPrescription.daysSelected[index];
+                            });
+                          },
+                        );
+                      })),
+            )
+          ],
+        ),
+        Row(children: <Widget>[
+          FlatButton(
+              onPressed: () {
+                DatePicker.showTimePicker(context,
+                    showTitleActions: true,
+                    currentTime: newPrescription.alarmTime,
+                    onConfirm: (dateTime) {
+                  newPrescription.alarmTime = dateTime;
+                });
+              },
+              child: Text('Select time for alarm.')),
+        ]),
+        Row(
+          children: <Widget>[
+            new ButtonBar(children: <Widget>[
+              RaisedButton(
+                child: Text("Cancel"),
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
+              ),
+              RaisedButton(
+                  child: Text("Confirm"),
+                  onPressed: () {
+                    print("Confirmed: \n" + newPrescription.toString());
+                    newPrescription.confirmNewPrescription();
+                    Navigator.pop(context, true);
+                  })
+            ])
+          ],
+        ),
+      ],
     );
   }
 }
