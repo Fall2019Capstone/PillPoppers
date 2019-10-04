@@ -32,7 +32,7 @@ class Prescription {
     if (!prescriptions.contains(this)) {
       prescriptions.add(this);
     }
-    if (daysSelected.contains(true)) {
+    if (daysSelected.contains(true) || daily) {
       NotificationHandler.schedulePrescriptionNotifications(this);
     }
   }

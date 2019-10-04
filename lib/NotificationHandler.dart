@@ -26,12 +26,14 @@ class NotificationHandler {
     }
 
     if (prescription.daily) {
+      print("Making daily alarm");
       alarmIDs = await getNextIDs(1);
-
+      print("Got id: " + alarmIDs[0].toString());
       alarm = new Alarm(alarmIDs, prescription.alarmTime, prescription.name,
-          "Time to take your " + prescription.name + ".", AlarmType.Daily);
+          "Time to take " + prescription.name + ".", AlarmType.Daily);
       scheduleDailyNotificationAlarm(alarm);
     } else {
+      print("Making weekly alarm");
       int alarmsNeeded = 0;
       for (int i = 0; i < 7; i++) {
         if (prescription.daysSelected[i]) {
@@ -82,7 +84,7 @@ class NotificationHandler {
     Day.Saturday
   ];
 
-  static Future scheduleDailyNotification(Prescription prescription) async {
+  /*static Future scheduleDailyNotification(Prescription prescription) async {
     var timeOfDay = prescription.alarmTime;
     Time time = new Time(timeOfDay.hour, timeOfDay.minute, 0);
 
@@ -95,7 +97,7 @@ class NotificationHandler {
         'Daily notification shown at approximately ${time.hour}:${time.minute}:${time.second}',
         time,
         platformChannelSpecifics);
-  }
+  }*/
 
   static Future scheduleDailyNotificationAlarm(Alarm alarm) async {
     var timeOfDay = alarm.timeOfDay;
@@ -108,7 +110,7 @@ class NotificationHandler {
         alarm.title, alarm.body, time, platformChannelSpecifics);
   }
 
-  static Future scheduleWeeklyNotification(Prescription prescription) async {
+  /*static Future scheduleWeeklyNotification(Prescription prescription) async {
     var time = new Time(10, 0, 0);
     var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
     var platformChannelSpecifics = new NotificationDetails(
@@ -121,7 +123,7 @@ class NotificationHandler {
         time,
         platformChannelSpecifics);
     //flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(id, title, body, day, notificationTime, notificationDetails)
-  }
+  }*/
 
   static Future scheduleWeeklyNotificationAlarm(
       Alarm alarm, int id, Day day) async {
@@ -165,6 +167,7 @@ class NotificationHandler {
       for (int i = 0; i < alarms.length; i++) {
         if (alarms[i].id == prescription.alarmID) {
           print("Disabling alarm...");
+          print(alarms[i].title);
           flutterLocalNotificationsPlugin.cancel(prescription.alarmID);
         }
       }
@@ -176,18 +179,21 @@ class NotificationHandler {
     futurePendingAlarms.then((alarms) {
       for (int i = 0; i < alarms.length; i++) {
         print("Disabling alarm...");
+        print(alarms[i].title);
         flutterLocalNotificationsPlugin.cancel(alarms[i].id);
       }
     });
   }
 
   static Future updateAlarm(Prescription prescription) async {
-    var futurePendingAlarms = retrieveNotifications();
-    futurePendingAlarms.then((alarms) {
-      var alarm =
-          alarms.firstWhere((alarm) => alarm.id == prescription.alarmID);
-      flutterLocalNotificationsPlugin?.cancel(alarm.id);
-    });
+    print("Updating prescription: " + prescription.name);
+    var futurePendingAlarms = await retrieveNotifications();
+
+    for (int i = 0; i < futurePendingAlarms.length; i++) {
+      if (prescription.alarm.alarmIDs.contains(futurePendingAlarms[i])) {
+        flutterLocalNotificationsPlugin.cancel(futurePendingAlarms[i].id);
+      }
+    }
   }
 
   static Future<List<PendingNotificationRequest>>
@@ -255,5 +261,13 @@ class NotificationHandler {
     }
 
     return ids;
+  }
+
+  static DebugPrintAlarmIDsStored() async{
+    var notifs = await retrieveNotifications();
+    print("DebugPrintAlarmIDsStored");
+    for(int i = 0; i < notifs.length; i++){
+      print(notifs[i].id.toString() + " : " + notifs[i].body);
+    }
   }
 }

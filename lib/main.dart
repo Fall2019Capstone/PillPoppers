@@ -54,9 +54,26 @@ class BodyLayoutState extends State<BodyLayout> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: _myListView(),
+
+        // For debugging
+        persistentFooterButtons: <Widget>[
+          FlatButton(
+            child: Text("Print Debug"),
+            onPressed: (){
+              NotificationHandler.DebugPrintAlarmIDsStored();
+            },
+          ),
+          FlatButton(
+            child: Text("Remove all notifications"),
+            onPressed: ((){
+              NotificationHandler.disableAllAlarms();
+            }),
+          )
+        ],
+        // End debugging
+        
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              NotificationHandler.disableAllAlarms();
               showDialog(
                   context: context,
                   builder: (_) {
