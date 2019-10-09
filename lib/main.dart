@@ -177,19 +177,23 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: Text("Create Prescription"),
-      contentPadding: const EdgeInsets.all(10.0),
+      title: Text(
+        "Create Prescription",
+        textAlign: TextAlign.center,),
+      contentPadding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
       children: <Widget>[
         // Name
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text("Name: "),
             new Flexible(
                 child: TextField(
               expands: false,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(), labelText: "Prescription name"),
+                  border: OutlineInputBorder(),
+                  labelText: "Prescription name",
+                  ),
+                  textAlign: TextAlign.center,
               onChanged: (name) {
                 newPrescription.name = name;
               },
@@ -199,11 +203,15 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
             ))
           ],
         ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          ),
         // Notification handler (Daily or on X,Y,Z days)
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ToggleButtons(
+              
               children: <Widget>[Text("Daily"), Text("Certain Days")],
               onPressed: (int index) {
                 setState(() {
@@ -228,8 +236,12 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
             )
           ],
         ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+          ),
         // Day pickerr if not set to Daily
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Visibility(
               visible: newPrescription.daily,
@@ -259,8 +271,10 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
             )
           ],
         ),
-        Row(children: <Widget>[
-          FlatButton(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+          OutlineButton(
               onPressed: () {
                 DatePicker.showTimePicker(context,
                     showTitleActions: true,
@@ -272,6 +286,7 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
               child: Text('Select time for alarm.')),
         ]),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             new ButtonBar(children: <Widget>[
               RaisedButton(
