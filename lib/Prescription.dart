@@ -10,71 +10,59 @@ class Prescription {
   bool alarmEnabled = true;
   int numberToTake = 10;
   int numberTaken = 0;
-  DateTime alarmTime = DateTime.now();
-  int alarmID;
+  int prescriptionID;
   bool daily = true;
   Alarm alarm;
-  // Sunday - Saturday of alarm being set
-  List<bool> daysSelected = [false, false, false, false, false, false, false];
 
-  static List<Prescription> prescriptions = [
-    new Prescription("TestMade1"),
-    new Prescription("TestMade2")
-  ];
+  // On startup, we would want to populate this from the DB
+  static List<Prescription> prescriptions = [];
 
-  Prescription(String name) {
-    this.name = name;
-    alarmID = maxUsedID;
+  Prescription.empty(){
+    prescriptionID = maxUsedID;
     maxUsedID++;
+    alarm = new Alarm.empty();
+    alarm.prescriptionID = prescriptionID;
   }
 
   void confirmNewPrescription() {
     if (!prescriptions.contains(this)) {
       prescriptions.add(this);
     }
-    if (daysSelected.contains(true) || daily) {
-      NotificationHandler.schedulePrescriptionNotifications(this);
+    if (alarm.days.contains(true) || daily) {
+      scheduleAlarm();
     }
   }
 
   void setAlarm(bool value) {
     alarmEnabled = value;
+    alarm.enabled = value;
     if (value) {
-      scheduleAlarm(alarmTime);
+      scheduleAlarm();
     } else {
       NotificationHandler.disableAlarm(this);
     }
   }
 
   void updateTime(DateTime time) {
-    alarmTime = time;
+    alarm.timeToAlert = time;
     if (alarmEnabled) {
       NotificationHandler.updateAlarm(this);
     }
   }
 
-  void scheduleAlarm(DateTime time) {
-    alarmTime = time;
-    NotificationHandler.scheduleNotification(this);
+  void scheduleAlarm() {
+    NotificationHandler.schedulePrescriptionNotifications(this);
   }
 
-  static instantiate() {
-    prescriptions = new List<Prescription>();
-
-    Prescription scrip1 = new Prescription("TestMade1");
-    Prescription scrip2 = new Prescription("TestMade2");
-    prescriptions.add(scrip1);
-    prescriptions.add(scrip2);
-  }
-
-  static newPrescription(String name) {
-    prescriptions.add(new Prescription(name));
+  void setName(String name){
+    this.name = name;
+    alarm.setName(name);
   }
 
   @override
   String toString() {
     String desc = '''$name
-    $daysSelected''';
+    $alarm''';
     return desc;
   }
 }

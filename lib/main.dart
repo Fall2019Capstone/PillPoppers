@@ -43,13 +43,6 @@ class BodyLayout extends StatefulWidget {
 }
 
 class BodyLayoutState extends State<BodyLayout> {
-  // Called when outside of any card is touched, adds new blank prescription for now.
-  void _addPrescription() {
-    setState(() {
-      Prescription.newPrescription("New Prescription");
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +53,7 @@ class BodyLayoutState extends State<BodyLayout> {
           FlatButton(
             child: Text("Print Debug"),
             onPressed: (){
-              NotificationHandler.DebugPrintAlarmIDsStored();
+              NotificationHandler.debugPrintAlarmIDsStored();
             },
           ),
           FlatButton(
@@ -135,7 +128,7 @@ class BodyLayoutState extends State<BodyLayout> {
                       onPressed: () {
                         DatePicker.showTimePicker(context,
                             showTitleActions: true,
-                            currentTime: item.alarmTime, onConfirm: (dateTime) {
+                            currentTime: item.alarm.timeToAlert, onConfirm: (dateTime) {
                           item.updateTime(dateTime);
                         }, locale: LocaleType.en);
                       },
@@ -171,7 +164,7 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
   ];
   List<String> daysAbbrev = ["S", "M", "T", "W", "TH", "F", "S"];
 
-  Prescription newPrescription = new Prescription("New prescription");
+  Prescription newPrescription = new Prescription.empty();
 
   List<bool> isSelected = [true, false];
   @override
@@ -191,10 +184,10 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
               decoration: InputDecoration(
                   border: OutlineInputBorder(), labelText: "Prescription name"),
               onChanged: (name) {
-                newPrescription.name = name;
+                newPrescription.setName(name);
               },
               onSubmitted: (name) {
-                newPrescription.name = name;
+                newPrescription.setName(name);
               },
             ))
           ],
@@ -245,13 +238,13 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
                       itemBuilder: (context, index) {
                         return new RaisedButton(
                           child: Text(daysAbbrev[index]),
-                          color: newPrescription.daysSelected[index]
+                          color: newPrescription.alarm.days[index]
                               ? Colors.blue
                               : Colors.white,
                           onPressed: () {
                             setState(() {
-                              newPrescription.daysSelected[index] =
-                                  !newPrescription.daysSelected[index];
+                              newPrescription.alarm.days[index] =
+                                  !newPrescription.alarm.days[index];
                             });
                           },
                         );
@@ -264,9 +257,9 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
               onPressed: () {
                 DatePicker.showTimePicker(context,
                     showTitleActions: true,
-                    currentTime: newPrescription.alarmTime,
+                    currentTime: newPrescription.alarm.timeToAlert,
                     onConfirm: (dateTime) {
-                  newPrescription.alarmTime = dateTime;
+                  newPrescription.alarm.timeToAlert = dateTime;
                 });
               },
               child: Text('Select time for alarm.')),

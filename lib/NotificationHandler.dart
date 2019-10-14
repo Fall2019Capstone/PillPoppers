@@ -14,9 +14,9 @@ class NotificationHandler {
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   static BuildContext context;
 
-  static Future<Alarm> schedulePrescriptionNotifications(
+  static Future schedulePrescriptionNotifications(
       Prescription prescription) async {
-    Alarm alarm;
+
     List<int> alarmIDs = new List<int>();
 
     if (prescription.alarm != null) {
@@ -29,49 +29,29 @@ class NotificationHandler {
       print("Making daily alarm");
       alarmIDs = await getNextIDs(1);
       print("Got id: " + alarmIDs[0].toString());
-      alarm = new Alarm(alarmIDs, prescription.alarmTime, prescription.name,
-          "Time to take " + prescription.name + ".", AlarmType.Daily);
-      scheduleDailyNotificationAlarm(alarm);
+      prescription.alarm.alarmIDs = alarmIDs;
+
+      //alarm = new Alarm(alarmIDs, prescription.alarmTime, AlarmType.Daily);
+      scheduleDailyNotificationAlarm(prescription.alarm);
     } else {
       print("Making weekly alarm");
       int alarmsNeeded = 0;
       for (int i = 0; i < 7; i++) {
-        if (prescription.daysSelected[i]) {
+        if (prescription.alarm.days[i]) {
           alarmsNeeded++;
         }
       }
       alarmIDs = await getNextIDs(alarmsNeeded);
-      alarm = new Alarm(
-          alarmIDs,
-          prescription.alarmTime,
-          prescription.name,
-          "It is time to take " + prescription.name + ".",
-          AlarmType.SpecificDays);
-      int alarmID = 0;
+      prescription.alarm.alarmIDs = alarmIDs;
+
+      int alarmIDIndex = 0;
       for (int i = 0; i < 7; i++) {
-        if (prescription.daysSelected[i]) {
-          scheduleWeeklyNotificationAlarm(alarm, alarmIDs[alarmID], days[i]);
-          alarmID++;
+        if (prescription.alarm.days[i]) {
+          scheduleWeeklyNotificationAlarm(prescription.alarm, alarmIDs[alarmIDIndex], days[i]);
+          alarmIDIndex++;
         }
       }
     }
-
-    return alarm;
-  }
-
-  static Future scheduleNotification(Prescription prescription) async {
-    var scheduledNotificationDateTime =
-        //new DateTime.now().add(new Duration(seconds: 5));
-        prescription.alarmTime;
-    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
-    NotificationDetails platformChannelSpecifics = new NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.schedule(
-        prescription.alarmID,
-        'Prescription Time!',
-        'It is time to take "' + prescription.name + '.',
-        scheduledNotificationDateTime,
-        platformChannelSpecifics);
   }
 
   static List<Day> days = [
@@ -84,23 +64,8 @@ class NotificationHandler {
     Day.Saturday
   ];
 
-  /*static Future scheduleDailyNotification(Prescription prescription) async {
-    var timeOfDay = prescription.alarmTime;
-    Time time = new Time(timeOfDay.hour, timeOfDay.minute, 0);
-
-    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
-    var platformChannelSpecifics = new NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.showDailyAtTime(
-        prescription.alarmID,
-        'show daily title',
-        'Daily notification shown at approximately ${time.hour}:${time.minute}:${time.second}',
-        time,
-        platformChannelSpecifics);
-  }*/
-
   static Future scheduleDailyNotificationAlarm(Alarm alarm) async {
-    var timeOfDay = alarm.timeOfDay;
+    var timeOfDay = alarm.timeToAlert;
     Time time = new Time(timeOfDay.hour, timeOfDay.minute, 0);
 
     var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
@@ -110,27 +75,14 @@ class NotificationHandler {
         alarm.title, alarm.body, time, platformChannelSpecifics);
   }
 
-  /*static Future scheduleWeeklyNotification(Prescription prescription) async {
-    var time = new Time(10, 0, 0);
-    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
-    var platformChannelSpecifics = new NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(
-        0,
-        'show weekly title',
-        'Weekly notification shown on Monday at approximately ',
-        Day.Monday,
-        time,
-        platformChannelSpecifics);
-    //flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(id, title, body, day, notificationTime, notificationDetails)
-  }*/
-
   static Future scheduleWeeklyNotificationAlarm(
       Alarm alarm, int id, Day day) async {
-    var time = new Time(alarm.timeOfDay.hour, alarm.timeOfDay.minute, 0);
+    var time = new Time(alarm.timeToAlert.hour, alarm.timeToAlert.minute, 0);
     var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
     var platformChannelSpecifics = new NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    print(alarm.title);
+    print(id);
     print("Setting notification : " + alarm.title + ", id : " + id.toString());
     await flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(
         id, alarm.title, alarm.body, day, time, platformChannelSpecifics);
@@ -165,10 +117,10 @@ class NotificationHandler {
     var futurePendingAlarms = retrieveNotifications();
     futurePendingAlarms.then((alarms) {
       for (int i = 0; i < alarms.length; i++) {
-        if (alarms[i].id == prescription.alarmID) {
+        if (alarms[i].id == prescription.prescriptionID) {
           print("Disabling alarm...");
           print(alarms[i].title);
-          flutterLocalNotificationsPlugin.cancel(prescription.alarmID);
+          flutterLocalNotificationsPlugin.cancel(prescription.prescriptionID);
         }
       }
     });
@@ -263,10 +215,10 @@ class NotificationHandler {
     return ids;
   }
 
-  static DebugPrintAlarmIDsStored() async{
+  static debugPrintAlarmIDsStored() async {
     var notifs = await retrieveNotifications();
     print("DebugPrintAlarmIDsStored");
-    for(int i = 0; i < notifs.length; i++){
+    for (int i = 0; i < notifs.length; i++) {
       print(notifs[i].id.toString() + " : " + notifs[i].body);
     }
   }
