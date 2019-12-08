@@ -15,6 +15,7 @@ void main() => runApp(MyApp());
 // List<String> prescriptions = ['Test Pill 1', 'Test Pill 2', 'Pill 3'];
 // List<bool> hasTaken = [true, false, false];
 
+// creates the homepage look and interface
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//body content goes here
 class BodyLayout extends StatefulWidget {
   @override
   BodyLayoutState createState() {
@@ -42,6 +44,7 @@ class BodyLayout extends StatefulWidget {
   }
 }
 
+//creates bottom bar of homepage in application
 class BodyLayoutState extends State<BodyLayout> {
   @override
   Widget build(BuildContext context) {
@@ -65,6 +68,7 @@ class BodyLayoutState extends State<BodyLayout> {
         ],
         // End debugging
         
+        //creates button for new perscription
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
               showDialog(
@@ -145,6 +149,7 @@ class BodyLayoutState extends State<BodyLayout> {
     );
   }
 }
+
 
 class NewPrescriptionDialog extends StatefulWidget {
   @override
@@ -293,6 +298,8 @@ class _NewPrescriptionDialogState extends State<NewPrescriptionDialog> {
                   onPressed: () {
                     print("Confirmed: \n" + newPrescription.toString());
                     newPrescription.confirmNewPrescription();
+                    //TODO: CREATE JSON OBJECT FROM newPerscription Object
+                    
                     Navigator.pop(context, true);
                   })
             ])

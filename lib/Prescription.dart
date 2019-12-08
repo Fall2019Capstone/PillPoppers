@@ -1,21 +1,30 @@
-import 'package:pill_poppers/NotificationHandler.dart';
+/**
+ *Class creates wireframe for a perscription
+ */
 
+import 'package:pill_poppers/NotificationHandler.dart';
+import 'JSONConversion.dart';
 import 'Alarm.dart';
 
 class Prescription {
+
+  //TODO: Pull from JSON doc to populate perscriptions list... 
+  //TODO: Modify class to accept JSON data
+  // On startup, we would want to populate this from the DB
+  static List<Prescription> prescriptions = [];
+
   static int maxUsedID = 0;
 
   String name = "New prescription";
   bool taken = false;
   bool alarmEnabled = true;
-  int numberToTake = 10;
+  int numberToTake = 0;
   int numberTaken = 0;
   int prescriptionID;
   bool daily = true;
   Alarm alarm;
 
-  // On startup, we would want to populate this from the DB
-  static List<Prescription> prescriptions = [];
+
 
   Prescription.empty(){
     prescriptionID = maxUsedID;
@@ -23,6 +32,7 @@ class Prescription {
     alarm = new Alarm.empty();
     alarm.prescriptionID = prescriptionID;
   }
+
 
   void confirmNewPrescription() {
     if (!prescriptions.contains(this)) {

@@ -1,3 +1,7 @@
+/**
+ *class creates wireframe for alarm and text readout for specific alarm
+ */
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 enum AlarmType { Daily, SpecificDays }
