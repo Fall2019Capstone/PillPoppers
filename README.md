@@ -1,16 +1,3 @@
-# pill_poppers
+# Pill Poppers
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The application will keep track of when the users must take their medication. Also, the users will have an option to enter manually to input their medications. The users will have a friendly interface to add/delete the time, how long they need to take it and also if they no longer need it. The application will notify the users at the time they should take their medications and users will be able to mark their pill as taken.
